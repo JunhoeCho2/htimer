@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -46,11 +47,17 @@ public class MapsActivity extends AppCompatActivity {
     private LocationRequest locationRequest;
     private double longitude, latitude;
 
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-    }
+        }
+
+
 
     @Override
     protected void onStart() {
@@ -164,7 +171,7 @@ public class MapsActivity extends AppCompatActivity {
             Intent intent = new Intent(MapsActivity.this, MainActivity.class);
             intent.putExtra("latitude", latitude);
             intent.putExtra("longitude", longitude);
-            startActivity(intent);
+            startActivity(intent); // 혹시 이 부분 때문에 10초마다 다시 꺼졌다 켜지는건지?
             finish();
         }
 
