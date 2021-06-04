@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">약물 위치를 설정해보자!</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="app_key" translatable="false">AIzaSyDNEX5IoG6bTUSpuP0mXoctWUB2MEAHQ6A</string>
+    <string name="location_track_start">실시간 위치 확인</string>
+    <string name="location_track_end">실시간 위치 확인 중지</string>
+</resources>

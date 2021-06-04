@@ -1,0 +1,198 @@
+<html>
+<head>
+<title>MapsActivity.java</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #0033b3;}
+.s1 { color: #080808;}
+.s2 { color: #1750eb;}
+.s3 { color: #067d17;}
+.s4 { color: #8c8c8c; font-style: italic;}
+</style>
+</head>
+<body bgcolor="#ffffff">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#c0c0c0" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+MapsActivity.java</font>
+</center></td></tr></table>
+<pre><span class="s0">package </span><span class="s1">com.example.htimer;</span>
+
+<span class="s0">import </span><span class="s1">android.Manifest;</span>
+<span class="s0">import </span><span class="s1">android.content.DialogInterface;</span>
+<span class="s0">import </span><span class="s1">android.content.Intent;</span>
+<span class="s0">import </span><span class="s1">android.content.IntentSender;</span>
+<span class="s0">import </span><span class="s1">android.content.pm.PackageManager;</span>
+<span class="s0">import </span><span class="s1">android.net.Uri;</span>
+<span class="s0">import </span><span class="s1">android.os.Bundle;</span>
+<span class="s0">import </span><span class="s1">android.provider.Settings;</span>
+<span class="s0">import </span><span class="s1">android.util.Log;</span>
+
+<span class="s0">import </span><span class="s1">androidx.annotation.NonNull;</span>
+<span class="s0">import </span><span class="s1">androidx.appcompat.app.AlertDialog;</span>
+<span class="s0">import </span><span class="s1">androidx.appcompat.app.AppCompatActivity;</span>
+<span class="s0">import </span><span class="s1">androidx.core.app.ActivityCompat;</span>
+
+<span class="s0">import </span><span class="s1">com.google.android.gms.common.api.ApiException;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.common.api.ResolvableApiException;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.location.FusedLocationProviderClient;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.location.LocationAvailability;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.location.LocationCallback;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.location.LocationRequest;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.location.LocationResult;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.location.LocationServices;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.location.LocationSettingsRequest;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.location.LocationSettingsResponse;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.location.LocationSettingsStatusCodes;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.location.SettingsClient;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.maps.GoogleMap;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.maps.OnMapReadyCallback;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.tasks.OnFailureListener;</span>
+<span class="s0">import </span><span class="s1">com.google.android.gms.tasks.OnSuccessListener;</span>
+
+<span class="s0">public class </span><span class="s1">MapsActivity </span><span class="s0">extends </span><span class="s1">AppCompatActivity {</span>
+
+    <span class="s0">private static final </span><span class="s1">String TAG = MapsActivity.</span><span class="s0">class</span><span class="s1">.getSimpleName();</span>
+    <span class="s0">private static final int </span><span class="s1">GPS_UTIL_LOCATION_PERMISSION_REQUEST_CODE = </span><span class="s2">100</span><span class="s1">;</span>
+    <span class="s0">private static final int </span><span class="s1">GPS_UTIL_LOCATION_RESOLUTION_REQUEST_CODE = </span><span class="s2">101</span><span class="s1">;</span>
+
+    <span class="s0">public static final int </span><span class="s1">DEFAULT_LOCATION_REQUEST_PRIORITY = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;</span>
+    <span class="s0">public static final long </span><span class="s1">DEFAULT_LOCATION_REQUEST_INTERVAL = </span><span class="s2">20000L</span><span class="s1">;</span>
+    <span class="s0">public static final long </span><span class="s1">DEFAULT_LOCATION_REQUEST_FAST_INTERVAL = </span><span class="s2">10000L</span><span class="s1">;</span>
+
+    <span class="s0">private </span><span class="s1">FusedLocationProviderClient fusedLocationProviderClient;</span>
+    <span class="s0">private </span><span class="s1">LocationRequest locationRequest;</span>
+    <span class="s0">private double </span><span class="s1">longitude, latitude;</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">protected void </span><span class="s1">onCreate(Bundle savedInstanceState) {</span>
+        <span class="s0">super</span><span class="s1">.onCreate(savedInstanceState);</span>
+        <span class="s1">setContentView(R.layout.activity_maps);</span>
+    <span class="s1">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">protected void </span><span class="s1">onStart() {</span>
+        <span class="s0">super</span><span class="s1">.onStart();</span>
+        <span class="s1">checkLocationPermission();</span>
+    <span class="s1">}</span>
+
+    <span class="s0">private void </span><span class="s1">checkLocationPermission() {</span>
+        <span class="s0">int </span><span class="s1">accessLocation = ActivityCompat.checkSelfPermission(</span><span class="s0">this</span><span class="s1">, Manifest.permission.ACCESS_FINE_LOCATION);</span>
+        <span class="s0">if </span><span class="s1">(accessLocation == PackageManager.PERMISSION_GRANTED) {</span>
+            <span class="s1">checkLocationSetting();</span>
+        <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+            <span class="s1">ActivityCompat.requestPermissions(</span><span class="s0">this</span><span class="s1">, </span><span class="s0">new </span><span class="s1">String[]{Manifest.permission.ACCESS_FINE_LOCATION}, GPS_UTIL_LOCATION_PERMISSION_REQUEST_CODE);</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public void </span><span class="s1">onRequestPermissionsResult(</span><span class="s0">int </span><span class="s1">requestCode, @NonNull String[] permissions, @NonNull </span><span class="s0">int</span><span class="s1">[] grantResults) {</span>
+        <span class="s0">if </span><span class="s1">(requestCode == GPS_UTIL_LOCATION_PERMISSION_REQUEST_CODE) {</span>
+            <span class="s0">for </span><span class="s1">(</span><span class="s0">int </span><span class="s1">i = </span><span class="s2">0</span><span class="s1">; i &lt; permissions.length; i++) {</span>
+                <span class="s0">if </span><span class="s1">(Manifest.permission.ACCESS_FINE_LOCATION.equals(permissions[i])) {</span>
+                    <span class="s0">if </span><span class="s1">(grantResults[i] == PackageManager.PERMISSION_GRANTED) {</span>
+                        <span class="s1">checkLocationSetting();</span>
+                    <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+                        <span class="s1">AlertDialog.Builder builder = </span><span class="s0">new </span><span class="s1">AlertDialog.Builder(</span><span class="s0">this</span><span class="s1">);</span>
+                        <span class="s1">builder.setTitle(</span><span class="s3">&quot;위치 권한이 꺼져있습니다.&quot;</span><span class="s1">);</span>
+                        <span class="s1">builder.setMessage(</span><span class="s3">&quot;[권한] 설정에서 위치 권한을 허용해야 합니다.&quot;</span><span class="s1">);</span>
+                        <span class="s1">builder.setPositiveButton(</span><span class="s3">&quot;설정으로 가기&quot;</span><span class="s1">, </span><span class="s0">new </span><span class="s1">DialogInterface.OnClickListener() {</span>
+                            <span class="s1">@Override</span>
+                            <span class="s0">public void </span><span class="s1">onClick(DialogInterface dialog, </span><span class="s0">int </span><span class="s1">which) {</span>
+                                <span class="s1">Intent intent = </span><span class="s0">new </span><span class="s1">Intent();</span>
+                                <span class="s1">intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);</span>
+                                <span class="s1">Uri uri = Uri.fromParts(</span><span class="s3">&quot;package&quot;</span><span class="s1">, getPackageName(), </span><span class="s0">null</span><span class="s1">);</span>
+                                <span class="s1">intent.setData(uri);</span>
+                                <span class="s1">startActivity(intent);</span>
+                            <span class="s1">}</span>
+                        <span class="s1">}).setNegativeButton(</span><span class="s3">&quot;종료&quot;</span><span class="s1">, </span><span class="s0">new </span><span class="s1">DialogInterface.OnClickListener() {</span>
+                            <span class="s1">@Override</span>
+                            <span class="s0">public void </span><span class="s1">onClick(DialogInterface dialog, </span><span class="s0">int </span><span class="s1">which) {</span>
+                                <span class="s1">finish();</span>
+                            <span class="s1">}</span>
+                        <span class="s1">});</span>
+                        <span class="s1">AlertDialog alert = builder.create();</span>
+                        <span class="s1">alert.show();</span>
+                    <span class="s1">}</span>
+                    <span class="s0">break</span><span class="s1">;</span>
+                <span class="s1">}</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s0">private void </span><span class="s1">checkLocationSetting() {</span>
+        <span class="s1">locationRequest = LocationRequest.create();</span>
+        <span class="s1">locationRequest.setPriority(DEFAULT_LOCATION_REQUEST_PRIORITY);</span>
+        <span class="s1">locationRequest.setInterval(DEFAULT_LOCATION_REQUEST_INTERVAL);</span>
+        <span class="s1">locationRequest.setFastestInterval(DEFAULT_LOCATION_REQUEST_FAST_INTERVAL);</span>
+
+        <span class="s1">SettingsClient settingsClient = LocationServices.getSettingsClient(</span><span class="s0">this</span><span class="s1">);</span>
+        <span class="s1">LocationSettingsRequest.Builder builder = </span><span class="s0">new </span><span class="s1">LocationSettingsRequest.Builder().addLocationRequest(locationRequest).setAlwaysShow(</span><span class="s0">true</span><span class="s1">);</span>
+        <span class="s1">settingsClient.checkLocationSettings(builder.build())</span>
+                <span class="s1">.addOnSuccessListener(</span><span class="s0">this</span><span class="s1">, </span><span class="s0">new </span><span class="s1">OnSuccessListener&lt;LocationSettingsResponse&gt;() {</span>
+                    <span class="s1">@Override</span>
+                    <span class="s0">public void </span><span class="s1">onSuccess(LocationSettingsResponse locationSettingsResponse) {</span>
+                        <span class="s1">fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MapsActivity.</span><span class="s0">this</span><span class="s1">);</span>
+                        <span class="s1">fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, </span><span class="s0">null</span><span class="s1">);</span>
+                    <span class="s1">}</span>
+                <span class="s1">})</span>
+                <span class="s1">.addOnFailureListener(MapsActivity.</span><span class="s0">this</span><span class="s1">, </span><span class="s0">new </span><span class="s1">OnFailureListener() {</span>
+                    <span class="s1">@Override</span>
+                    <span class="s0">public void </span><span class="s1">onFailure(@NonNull Exception e) {</span>
+                        <span class="s0">int </span><span class="s1">statusCode = ((ApiException) e).getStatusCode();</span>
+                        <span class="s0">switch </span><span class="s1">(statusCode) {</span>
+                            <span class="s0">case </span><span class="s1">LocationSettingsStatusCodes.RESOLUTION_REQUIRED:</span>
+                                <span class="s0">try </span><span class="s1">{</span>
+                                    <span class="s1">ResolvableApiException rae = (ResolvableApiException) e;</span>
+                                    <span class="s1">rae.startResolutionForResult(MapsActivity.</span><span class="s0">this</span><span class="s1">, GPS_UTIL_LOCATION_RESOLUTION_REQUEST_CODE);</span>
+                                <span class="s1">} </span><span class="s0">catch </span><span class="s1">(IntentSender.SendIntentException sie) {</span>
+                                    <span class="s1">Log.w(TAG, </span><span class="s3">&quot;unable to start resolution for result due to &quot; </span><span class="s1">+ sie.getLocalizedMessage());</span>
+                                <span class="s1">}</span>
+                                <span class="s0">break</span><span class="s1">;</span>
+                            <span class="s0">case </span><span class="s1">LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:</span>
+                                <span class="s1">String errorMessage = </span><span class="s3">&quot;location settings are inadequate, and cannot be fixed here. Fix in Settings.&quot;</span><span class="s1">;</span>
+                                <span class="s1">Log.e(TAG, errorMessage);</span>
+                        <span class="s1">}</span>
+                    <span class="s1">}</span>
+                <span class="s1">});</span>
+    <span class="s1">}</span>
+
+    <span class="s1">@Override</span>
+    <span class="s0">public void </span><span class="s1">onActivityResult(</span><span class="s0">int </span><span class="s1">requestCode, </span><span class="s0">int </span><span class="s1">resultCode, Intent data) {</span>
+        <span class="s0">super</span><span class="s1">.onActivityResult(requestCode, resultCode, data);</span>
+
+        <span class="s0">if </span><span class="s1">(requestCode == GPS_UTIL_LOCATION_RESOLUTION_REQUEST_CODE) {</span>
+            <span class="s0">if </span><span class="s1">(resultCode == RESULT_OK) {</span>
+                <span class="s1">checkLocationSetting();</span>
+            <span class="s1">} </span><span class="s0">else </span><span class="s1">{</span>
+                <span class="s1">finish();</span>
+            <span class="s1">}</span>
+        <span class="s1">}</span>
+    <span class="s1">}</span>
+
+    <span class="s0">private </span><span class="s1">LocationCallback locationCallback = </span><span class="s0">new </span><span class="s1">LocationCallback() {</span>
+        <span class="s1">@Override</span>
+        <span class="s0">public void </span><span class="s1">onLocationResult(LocationResult locationResult) {</span>
+            <span class="s0">super</span><span class="s1">.onLocationResult(locationResult);</span>
+            <span class="s1">longitude = locationResult.getLastLocation().getLongitude();</span>
+            <span class="s1">latitude = locationResult.getLastLocation().getLatitude();</span>
+            <span class="s1">fusedLocationProviderClient.removeLocationUpdates(locationCallback); </span><span class="s4">//이 부분을 주기적으로 위치를 확인해 위경도를 갱신함?</span>
+
+
+            <span class="s1">Intent intent = </span><span class="s0">new </span><span class="s1">Intent(MapsActivity.</span><span class="s0">this</span><span class="s1">, MainActivity.</span><span class="s0">class</span><span class="s1">);</span>
+            <span class="s1">intent.putExtra(</span><span class="s3">&quot;latitude&quot;</span><span class="s1">, latitude);</span>
+            <span class="s1">intent.putExtra(</span><span class="s3">&quot;longitude&quot;</span><span class="s1">, longitude);</span>
+            <span class="s1">startActivity(intent);</span>
+            <span class="s1">finish();</span>
+        <span class="s1">}</span>
+
+        <span class="s1">@Override</span>
+        <span class="s0">public void </span><span class="s1">onLocationAvailability(LocationAvailability locationAvailability) {</span>
+            <span class="s0">super</span><span class="s1">.onLocationAvailability(locationAvailability);</span>
+            <span class="s1">Log.i(TAG, </span><span class="s3">&quot;onLocationAvailability - &quot; </span><span class="s1">+ locationAvailability);</span>
+        <span class="s1">}</span>
+    <span class="s1">};</span>
+<span class="s1">}</span>
+</pre>
+</body>
+</html>
