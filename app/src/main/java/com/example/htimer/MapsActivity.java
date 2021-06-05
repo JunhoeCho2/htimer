@@ -27,8 +27,6 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
@@ -161,7 +159,7 @@ public class MapsActivity extends AppCompatActivity {
             fusedLocationProviderClient.removeLocationUpdates(locationCallback); //이 부분을 주기적으로 위치를 확인해 위경도를 갱신함?
 
 
-            Intent intent = new Intent(MapsActivity.this, MainActivity.class);
+            Intent intent = new Intent(MapsActivity.this, GMActivity.class);
             intent.putExtra("latitude", latitude);
             intent.putExtra("longitude", longitude);
             startActivity(intent);

@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
 
     <application
@@ -18,7 +20,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDNEX5IoG6bTUSpuP0mXoctWUB2MEAHQ6A"/>
 
-        <activity android:name=".MainActivity"></activity>
+        <activity android:name=".GMActivity"></activity>
         <activity android:name=".MapsActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
